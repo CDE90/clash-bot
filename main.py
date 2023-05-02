@@ -35,7 +35,7 @@ setup_logging()
 
 db = Prisma()
 
-cc = coc.Client(cache_max_size=None)  # type: ignore
+cc = coc.Client(cache_max_size=None, key_names=config.KEY_ENVIRONMENT)  # type: ignore
 
 intents = discord.Intents.all()
 
