@@ -15,7 +15,7 @@ class EventsCog(commands.Cog):
 
         self.handle_events.start()
 
-    @tasks.loop(seconds=600)
+    @tasks.loop(seconds=300)
     async def handle_events(self):
         clan = await self.bot.cc.get_clan(config.CLAN_TAG)
 
@@ -131,7 +131,16 @@ class EventsCog(commands.Cog):
 
             if is_newly_active:
                 await self.bot.db.member.update(
-                    where={"id": db_member.id}, data={"last_active": dt.utcnow()}
+                    where={"id": db_member.id},
+                    data={
+                        "last_active": dt.utcnow(),
+                        "activity_hits": {"increment": 1},
+                    },
+                )
+            else:
+                await self.bot.db.member.update(
+                    where={"id": db_member.id},
+                    data={"activity_misses": {"increment": 1}},
                 )
 
         all_db_members = await self.bot.db.member.find_many(
@@ -143,13 +152,10 @@ class EventsCog(commands.Cog):
                 member for member in current_members if member.id == db_member.id
             ]
 
-            if not current_member:
+            if db_member.current_member != current_member:
                 await self.bot.db.member.update(
-                    where={"id": db_member.id}, data={"current_member": False}
-                )
-            else:
-                await self.bot.db.member.update(
-                    where={"id": db_member.id}, data={"current_member": True}
+                    where={"id": db_member.id},
+                    data={"current_member": True if current_member else False},
                 )
 
     @handle_events.before_loop

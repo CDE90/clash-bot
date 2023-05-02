@@ -4,14 +4,14 @@ datasource db {
 }
 
 generator client {
-    provider             = "prisma-client-py"
+    provider             = "python3 -m prisma"
     interface            = "asyncio"
     recursive_type_depth = 3
 }
 
 model Member {
-    id                    String   @id @default(uuid())
-    tag                   String   @unique
+    id                    String  @id @default(uuid())
+    tag                   String  @unique
     name                  String
     role                  Role
     trophies              Int
@@ -23,8 +23,11 @@ model Member {
     versus_trophies       Int
     capital_contributions Int
     war_stars             Int
-    last_active           DateTime @default(now())
-    current_member        Boolean  @default(true)
+    current_member        Boolean @default(true)
+
+    last_active     DateTime @default(now())
+    activity_hits   Int      @default(0)
+    activity_misses Int      @default(0)
 
     Clan   Clan?   @relation(fields: [clanId], references: [id])
     clanId String?
