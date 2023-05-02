@@ -9,8 +9,68 @@ generator client {
     recursive_type_depth = 3
 }
 
-model Example {
-    id    Int    @id @default(autoincrement())
-    name  String
-    email String
+model Member {
+    id                    String   @id @default(uuid())
+    tag                   String   @unique
+    name                  String
+    role                  Role
+    trophies              Int
+    clan_rank             Int
+    previous_clan_rank    Int
+    donations             Int
+    donations_received    Int
+    attack_wins           Int
+    versus_trophies       Int
+    capital_contributions Int
+    war_stars             Int
+    last_active           DateTime @default(now())
+    current_member        Boolean  @default(true)
+
+    Clan   Clan?   @relation(fields: [clanId], references: [id])
+    clanId String?
 }
+
+enum Role {
+    MEMBER
+    ELDER
+    CO_LEADER
+    LEADER
+}
+
+model Clan {
+    id                String       @id @default(uuid())
+    tag               String       @unique
+    name              String
+    level             Int
+    type              ClanType
+    description       String
+    points            Int
+    capital_points    Int
+    required_trophies Int
+    required_townhall Int
+    war_frequency     WarFrequency
+    war_win_streak    Int
+    war_wins          Int
+    war_ties          Int
+    war_losses        Int
+    member_count      Int
+    members           Member[]
+}
+
+enum ClanType {
+    OPEN
+    INVITE_ONLY
+    CLOSED
+}
+
+enum WarFrequency {
+    ALWAYS
+    MORE_THAN_ONCE_PER_WEEK
+    ONCE_PER_WEEK
+    LESS_THAN_ONCE_PER_WEEK
+    NEVER
+}
+
+// TODO: add clan war tracking
+// new model war + relations to clan
+// new model war attack + relations to war and member
