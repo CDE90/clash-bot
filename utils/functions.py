@@ -1,11 +1,9 @@
 from datetime import datetime as dt
 
 from coc import Role as CCRole
-from prisma.enums import (
-    Role as DBRole,
-    ClanType as DBClanType,
-    WarFrequency as DBWarFrequency,
-)
+from prisma.enums import ClanType as DBClanType
+from prisma.enums import Role as DBRole
+from prisma.enums import WarFrequency as DBWarFrequency
 from prisma.models import Member as DBMember
 
 

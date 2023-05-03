@@ -1,12 +1,12 @@
 from datetime import datetime as dt
+
 import discord
 from discord.ext import commands, tasks
-
 from prisma.models import Member as DBMember
 
 import config
 from main import ClashBot
-from utils import get_db_role, get_db_clan_type, get_db_war_frequency, is_member_active
+from utils import get_db_clan_type, get_db_role, get_db_war_frequency, is_member_active
 
 
 class EventsCog(commands.Cog):

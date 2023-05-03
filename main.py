@@ -4,9 +4,9 @@ import os
 import coc
 import discord
 from discord.ext import commands
-from prisma import Prisma
 
 import config
+from prisma import Prisma
 from utils.logger import setup_logging
 
 
