@@ -1,6 +1,5 @@
 from datetime import datetime as dt
 
-import coc
 from discord.ext import commands, tasks
 from prisma.models import Member as DBMember
 
@@ -200,6 +199,16 @@ class EventsCog(commands.Cog):
                         "attacks_per_member": war.attacks_per_member,
                         "result": get_db_war_result(war.status),
                         "type": get_db_war_type(war.type),
+                        "members": {
+                            "create": [
+                                {
+                                    "memberId": member.id,
+                                }
+                                for member in current_members
+                                if len([m for m in war.members if m.tag == member.tag])
+                                > 0
+                            ]
+                        },
                     },
                     "update": {
                         "opponent_tag": war.opponent.tag if war.opponent else "",

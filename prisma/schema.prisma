@@ -29,11 +29,10 @@ model Member {
     activity_hits   Int      @default(0)
     activity_misses Int      @default(0)
 
-    Clan      Clan?       @relation(fields: [clanId], references: [id])
+    Clan      Clan?           @relation(fields: [clanId], references: [id], onDelete: Cascade)
     clanId    String?
-    ClanWar   ClanWar?    @relation(fields: [clanWarId], references: [id])
-    clanWarId String?
     WarAttack WarAttack[]
+    clan_wars ClanWarMember[]
 }
 
 enum Role {
@@ -81,7 +80,7 @@ enum WarFrequency {
 
 model ClanWar {
     id                     String   @id @default(uuid())
-    clan                   Clan     @relation(fields: [clanId], references: [id])
+    clan                   Clan     @relation(fields: [clanId], references: [id], onDelete: Cascade)
     clanId                 String
     opponent_tag           String
     preparation_start_time DateTime
@@ -93,7 +92,7 @@ model ClanWar {
     result    WarResult
     type      WarType
     WarAttack WarAttack[]
-    members   Member[]
+    members   ClanWarMember[]
 
     @@unique([clanId, preparation_start_time])
 }
@@ -120,10 +119,22 @@ model WarAttack {
     duration               Float
     order                  Int
 
-    attacker   Member  @relation(fields: [attackerId], references: [id])
+    attacker   Member  @relation(fields: [attackerId], references: [id], onDelete: Cascade)
     attackerId String
-    war        ClanWar @relation(fields: [warId], references: [id])
+    war        ClanWar @relation(fields: [warId], references: [id], onDelete: Cascade)
     warId      String
 
     @@unique([attacker_tag, defender_tag, warId])
+}
+
+model ClanWarMember {
+    id String @id @default(uuid())
+
+    member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+    memberId String
+
+    clanWar   ClanWar @relation(fields: [clanWarId], references: [id], onDelete: Cascade)
+    clanWarId String
+
+    @@unique([memberId, clanWarId])
 }
