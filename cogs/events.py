@@ -9,9 +9,9 @@ from utils import (
     get_db_clan_type,
     get_db_role,
     get_db_war_frequency,
-    is_member_active,
     get_db_war_result,
     get_db_war_type,
+    is_member_active,
 )
 
 
@@ -252,7 +252,7 @@ class EventsCog(commands.Cog):
                 ]
 
                 if len(attacker_member) > 0:
-                    db_attack = await self.bot.db.warattack.create(
+                    await self.bot.db.warattack.create(
                         {
                             "attacker_tag": attack.attacker_tag,
                             "defender_tag": attack.defender_tag,
