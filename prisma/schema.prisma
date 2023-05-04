@@ -33,6 +33,9 @@ model Member {
     clanId    String?
     WarAttack WarAttack[]
     clan_wars ClanWarMember[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 }
 
 enum Role {
@@ -62,6 +65,9 @@ model Clan {
 
     members Member[]
     ClanWar ClanWar[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 }
 
 enum ClanType {
@@ -94,6 +100,9 @@ model ClanWar {
     WarAttack WarAttack[]
     members   ClanWarMember[]
 
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
     @@unique([clanId, preparation_start_time])
 }
 
@@ -124,10 +133,14 @@ model WarAttack {
     war        ClanWar @relation(fields: [warId], references: [id], onDelete: Cascade)
     warId      String
 
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+
     @@unique([attacker_tag, defender_tag, warId])
 }
 
 model ClanWarMember {
+    // This is just a linking table to allow a many-to-many relationship between ClanWar and Member
     id String @id @default(uuid())
 
     member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
@@ -135,6 +148,9 @@ model ClanWarMember {
 
     clanWar   ClanWar @relation(fields: [clanWarId], references: [id], onDelete: Cascade)
     clanWarId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
 
     @@unique([memberId, clanWarId])
 }
