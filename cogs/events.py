@@ -1,12 +1,19 @@
 from datetime import datetime as dt
 
-import discord
+import coc
 from discord.ext import commands, tasks
 from prisma.models import Member as DBMember
 
 import config
 from main import ClashBot
-from utils import get_db_clan_type, get_db_role, get_db_war_frequency, is_member_active
+from utils import (
+    get_db_clan_type,
+    get_db_role,
+    get_db_war_frequency,
+    is_member_active,
+    get_db_war_result,
+    get_db_war_type,
+)
 
 
 class EventsCog(commands.Cog):
@@ -79,8 +86,6 @@ class EventsCog(commands.Cog):
         current_members: list[DBMember] = []
 
         for member in members:
-            print(f"Handling {member.name}")
-
             player = await self.bot.cc.get_player(member.tag)
 
             role = get_db_role(member.role)
@@ -148,15 +153,108 @@ class EventsCog(commands.Cog):
         )
 
         for db_member in all_db_members:
-            current_member = [
-                member for member in current_members if member.id == db_member.id
-            ]
+            current_member = (
+                len([member for member in current_members if member.id == db_member.id])
+                > 0
+            )
 
             if db_member.current_member != current_member:
                 await self.bot.db.member.update(
                     where={"id": db_member.id},
-                    data={"current_member": True if current_member else False},
+                    data={"current_member": current_member},
                 )
+
+        try:
+            war = await self.bot.cc.get_current_war(config.CLAN_TAG)
+        except:
+            print("No war")
+            war = None
+
+        if war:
+            print("Handling war")
+            prep_start_time = war.preparation_start_time
+            if not prep_start_time:
+                prep_start_time = dt.utcnow()
+            else:
+                prep_start_time = dt.fromisoformat(prep_start_time.raw_time)
+
+            db_war = await self.bot.db.clanwar.upsert(
+                where={
+                    "clanId_preparation_start_time": {
+                        "clanId": db_clan.id,
+                        "preparation_start_time": prep_start_time,
+                    }
+                },
+                data={
+                    "create": {
+                        "clanId": db_clan.id,
+                        "opponent_tag": war.opponent.tag if war.opponent else "",
+                        "preparation_start_time": prep_start_time,
+                        "war_start_time": dt.fromisoformat(
+                            war.start_time.raw_time if war.start_time else ""
+                        ),
+                        "war_end_time": dt.fromisoformat(
+                            war.end_time.raw_time if war.end_time else ""
+                        ),
+                        "team_size": war.team_size,
+                        "attacks_per_member": war.attacks_per_member,
+                        "result": get_db_war_result(war.status),
+                        "type": get_db_war_type(war.type),
+                    },
+                    "update": {
+                        "opponent_tag": war.opponent.tag if war.opponent else "",
+                        "war_start_time": dt.fromisoformat(
+                            war.start_time.raw_time if war.start_time else ""
+                        ),
+                        "war_end_time": dt.fromisoformat(
+                            war.end_time.raw_time if war.end_time else ""
+                        ),
+                        "team_size": war.team_size,
+                        "attacks_per_member": war.attacks_per_member,
+                        "result": get_db_war_result(war.status),
+                        "type": get_db_war_type(war.type),
+                    },
+                },
+            )
+
+            db_war_attacks = await self.bot.db.warattack.find_many(
+                where={"warId": db_war.id}
+            )
+
+            new_attacks = [
+                attack
+                for attack in war.attacks
+                if len(
+                    [
+                        db_attack
+                        for db_attack in db_war_attacks
+                        if db_attack.attacker_tag == attack.attacker_tag
+                        and db_attack.defender_tag == attack.defender_tag
+                    ]
+                )
+                == 0
+            ]
+
+            for attack in new_attacks:
+                attacker_member = [
+                    member
+                    for member in current_members
+                    if member.tag == attack.attacker_tag
+                ]
+
+                if len(attacker_member) > 0:
+                    db_attack = await self.bot.db.warattack.create(
+                        {
+                            "attacker_tag": attack.attacker_tag,
+                            "defender_tag": attack.defender_tag,
+                            "stars": attack.stars,
+                            "destruction_percentage": attack.destruction,
+                            "duration": attack.duration,
+                            "order": attack.order,
+                            "warId": db_war.id,
+                            "attackerId": attacker_member[0].id,
+                        }
+                    )
 
     @handle_events.before_loop
     async def before_handle_events(self):

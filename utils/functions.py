@@ -4,6 +4,8 @@ from coc import Role as CCRole
 from prisma.enums import ClanType as DBClanType
 from prisma.enums import Role as DBRole
 from prisma.enums import WarFrequency as DBWarFrequency
+from prisma.enums import WarResult as DBWarResult
+from prisma.enums import WarType as DBWarType
 from prisma.models import Member as DBMember
 
 
@@ -44,6 +46,30 @@ def get_db_war_frequency(cc_frequency: str) -> DBWarFrequency:
         return DBWarFrequency.NEVER
     else:
         raise ValueError(f"Unknown war frequency {cc_frequency}")
+
+
+def get_db_war_type(cc_type: str | None) -> DBWarType:
+    if cc_type == "random":
+        return DBWarType.RANDOM
+    elif cc_type == "friendly":
+        return DBWarType.FRIENDLY
+    elif cc_type == "cwl":
+        return DBWarType.LEAGUE
+    else:
+        raise ValueError(f"Unknown war type {cc_type}")
+
+
+def get_db_war_result(cc_result: str) -> DBWarResult:
+    if cc_result == "won":
+        return DBWarResult.WIN
+    elif cc_result == "lost":
+        return DBWarResult.LOSS
+    elif cc_result == "tied":
+        return DBWarResult.TIE
+    elif cc_result in ("winning", "tied", "losing"):
+        return DBWarResult.IN_PROGRESS
+    else:
+        raise ValueError(f"Unknown war result {cc_result}")
 
 
 def is_member_active(before: DBMember, after: DBMember) -> bool:

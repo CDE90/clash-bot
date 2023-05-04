@@ -29,8 +29,11 @@ model Member {
     activity_hits   Int      @default(0)
     activity_misses Int      @default(0)
 
-    Clan   Clan?   @relation(fields: [clanId], references: [id])
-    clanId String?
+    Clan      Clan?       @relation(fields: [clanId], references: [id])
+    clanId    String?
+    ClanWar   ClanWar?    @relation(fields: [clanWarId], references: [id])
+    clanWarId String?
+    WarAttack WarAttack[]
 }
 
 enum Role {
@@ -57,7 +60,9 @@ model Clan {
     war_ties          Int
     war_losses        Int
     member_count      Int
-    members           Member[]
+
+    members Member[]
+    ClanWar ClanWar[]
 }
 
 enum ClanType {
@@ -74,6 +79,51 @@ enum WarFrequency {
     NEVER
 }
 
-// TODO: add clan war tracking
-// new model war + relations to clan
-// new model war attack + relations to war and member
+model ClanWar {
+    id                     String   @id @default(uuid())
+    clan                   Clan     @relation(fields: [clanId], references: [id])
+    clanId                 String
+    opponent_tag           String
+    preparation_start_time DateTime
+    war_start_time         DateTime
+    war_end_time           DateTime
+    team_size              Int
+    attacks_per_member     Int
+
+    result    WarResult
+    type      WarType
+    WarAttack WarAttack[]
+    members   Member[]
+
+    @@unique([clanId, preparation_start_time])
+}
+
+enum WarResult {
+    WIN
+    LOSS
+    TIE
+    IN_PROGRESS
+}
+
+enum WarType {
+    RANDOM
+    FRIENDLY
+    LEAGUE
+}
+
+model WarAttack {
+    id                     String @id @default(uuid())
+    attacker_tag           String
+    defender_tag           String
+    stars                  Int
+    destruction_percentage Float
+    duration               Float
+    order                  Int
+
+    attacker   Member  @relation(fields: [attackerId], references: [id])
+    attackerId String
+    war        ClanWar @relation(fields: [warId], references: [id])
+    warId      String
+
+    @@unique([attacker_tag, defender_tag, warId])
+}
