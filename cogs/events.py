@@ -169,6 +169,20 @@ class EventsCog(commands.Cog):
             print("No war")
             war = None
 
+        if not war:
+            try:
+                war = await self.bot.cc.get_clan_war(config.CLAN_TAG)
+            except:
+                print("No war")
+                war = None
+
+        if not war:
+            try:
+                war = await self.bot.cc.get_league_war(config.CLAN_TAG)
+            except:
+                print("No war")
+                war = None
+
         if war:
             print("Handling war")
             prep_start_time = war.preparation_start_time
